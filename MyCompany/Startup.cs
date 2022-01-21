@@ -59,9 +59,18 @@ namespace MyCompany
                 options.SlidingExpiration = true;
             });
 
+            //configure authorization politic for Admin Area
+            services.AddAuthorization(x =>
+            {
+                x.AddPolicy("AdminArea", policy => { policy.RequireRole("admin"); });
+            });
+
             //added services for controllers and views (MVC)
-            services.AddControllersWithViews()
-                .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Latest).AddSessionStateTempDataProvider();
+            services.AddControllersWithViews(x =>
+            {
+                x.Conventions.Add(new AdminAreaAuthorization("Admin", "AdminArea"));
+            })
+            .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Latest).AddSessionStateTempDataProvider();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -80,6 +89,7 @@ namespace MyCompany
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllerRoute("admin", "{area:exists}/{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
         }
